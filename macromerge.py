@@ -4,9 +4,15 @@ import collections
 import more_itertools
 
 def indices(input_list, val):
+    ''' Returns list of indices at which "val" occurs within "input_list" '''
     return list(more_itertools.locate(input_list, pred=lambda x: x==val))
 
 def isolate_dupes(commandlist, verbose=True):
+    ''' Returns list with duplicate definitions commented out.
+        "commandlist" is of the form [commandtype, commandname, line_of_code].
+        Output is the same as the input, except that the duplicates are moved to right 
+        after the first occurence, with order otherwise conserved.
+    '''
     # List of command names
     names = [el[1] for el in commandlist]
     # Dictionnary giving frequency of each name
@@ -22,6 +28,8 @@ def isolate_dupes(commandlist, verbose=True):
         # Get the indices at which "key" occurs in the list of names
         idxs = indices(names, key)
         
+        assert len(idxs)==counter[key] # Consistency check
+        
         for i, idx in enumerate(idxs):
             if i==0: # Add the first occurence as is
                 outputlist.append( commandlist[idx] )
@@ -36,13 +44,18 @@ def isolate_dupes(commandlist, verbose=True):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.prog = "merge.py"
-    parser.description = "Merge sty files."
+    parser.description = 'Merge LaTex macro files ("newcommand" and "renewcommand" only). See README.md for details.'
     
     parser.add_argument("inputfile", help="Input file", nargs='+', type=str)
     parser.add_argument("-o", "--outputname", help="Name for output", required=True, type=str)
     parser.add_argument("-v", "--verbose", help="Show merged macros", action="store_true")
-    #parser.add_argument("-q", "--quiet", help="", action="store_true")
     args = parser.parse_args()
+    
+    if args.verbose:
+        print()
+        print('inputfile = {}'.format(args.inputfile))
+        print('outputname = {}'.format(args.outputname))
+        print()
     
     # List for holding commands
     newcommands = []
@@ -62,8 +75,9 @@ if __name__ == "__main__":
             all_lines = fh.readlines()
         
         for line in all_lines:
-            m1 = p1.search(line) # Search for "newcommand" definitions
-            m2 = p2.search(line) # Search for "renewcommand" definitions
+            # "match" only matches the expression if it is at the start of "line"
+            m1 = p1.match(line) # Search for "newcommand" definitions
+            m2 = p2.match(line) # Search for "renewcommand" definitions
             
             # Strip trailing whitespaces (including newlines) and add file of origin
             line = line.rstrip() + r' % ' + filename
@@ -76,8 +90,17 @@ if __name__ == "__main__":
                 assert m1 is None # Consistency check
                 renewcommands.append( [m2.group(1), m2.group(2), line] ) # Append to list
     
-    newcommands_nodupes   = isolate_dupes(newcommands, verbose=False)
-    renewcommands_nodupes = isolate_dupes(renewcommands, verbose=False)
+    # Make lists with duplicates commented out
+    newcommands_nodupes   = isolate_dupes(newcommands, verbose=args.verbose)
+    if args.verbose: print()
+    renewcommands_nodupes = isolate_dupes(renewcommands, verbose=args.verbose)
     
-    for val in newcommands_nodupes: print(val[2])
-    
+    # Write to file
+    with open(args.outputname, 'w') as fo:
+            fo.write('\n')
+            for newcommand in newcommands_nodupes:
+                fo.write(newcommand[2] + '\n')
+            fo.write('\n')
+            for renewcommand in renewcommands_nodupes:
+                fo.write(renewcommand[2] + '\n')
+            fo.write('\n')
