@@ -18,8 +18,6 @@ def isolate_dupes(commandlist, verbose=True):
     # Dictionnary giving frequency of each name
     counter = collections.Counter(names)
     
-    if verbose: print(counter)
-    
     # List for outputting the commands
     outputlist = []
     
@@ -33,10 +31,15 @@ def isolate_dupes(commandlist, verbose=True):
         for i, idx in enumerate(idxs):
             if i==0: # Add the first occurence as is
                 outputlist.append( commandlist[idx] )
+                # Print duplicate commands
+                if verbose and len(idxs)>1: print('\t{}'.format(commandlist[idx]))
             else: # Add further occurences as comments
                 commandtemp = commandlist[idx]
-                commandtemp[2] = r'%' + commandtemp[2]
+                # Print duplicate commands
+                if verbose and len(idxs)>1: print('\t{}'.format(commandtemp))
+                commandtemp[2] = r'% ' + commandtemp[2]
                 outputlist.append( commandtemp )
+        if verbose and len(idxs)>1: print()
     
     return outputlist
 
@@ -80,7 +83,7 @@ if __name__ == "__main__":
             m2 = p2.match(line) # Search for "renewcommand" definitions
             
             # Strip trailing whitespaces (including newlines) and add file of origin
-            line = line.rstrip() + r' % ' + filename
+            line = line.rstrip() + '\t% ' + filename
         
             if m1 is not None:
                 assert m2 is None # Consistency check
@@ -91,8 +94,9 @@ if __name__ == "__main__":
                 renewcommands.append( [m2.group(1), m2.group(2), line] ) # Append to list
     
     # Make lists with duplicates commented out
+    if args.verbose: print('Duplicate "newcommand" definitions:\n')
     newcommands_nodupes   = isolate_dupes(newcommands, verbose=args.verbose)
-    if args.verbose: print()
+    if args.verbose: print('Duplicate "renewcommand" definitions:\n')
     renewcommands_nodupes = isolate_dupes(renewcommands, verbose=args.verbose)
     
     # Write to file
@@ -103,4 +107,3 @@ if __name__ == "__main__":
             fo.write('\n')
             for renewcommand in renewcommands_nodupes:
                 fo.write(renewcommand[2] + '\n')
-            fo.write('\n')
