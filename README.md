@@ -1,6 +1,6 @@
 Merges files (typically sty files) containing LaTex macro definitions, keeping the first instance of duplicate definitions. 
 
-usage: merge.py [-h] -o OUTPUTNAME [-v] inputfile1 inputfile2 [inputfile3 ...]
+usage: macromerge [-h] -o OUTPUTNAME [-v] inputfile1 inputfile2 [inputfile3 ...]
 
 Only works with "newcommand" and "renewcommand" statements.
 Statements must begin at the start of a new line; otherwise, they are ignored.

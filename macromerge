@@ -48,9 +48,9 @@ def isolate_dupes(commandlist, verbose=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.prog = "merge.py"
+    parser.prog = "macromerge"
     parser.description = 'Merge LaTex macro files ("newcommand" and "renewcommand" only). See README.md for details.'
-    
+    parser.epilog = "Example usage: macromerge defs1.sty defs2.sty -o defs_merged.sty"
     parser.add_argument("inputfile", help="Input file", nargs='+', type=str)
     parser.add_argument("-o", "--outputname", help="Name for output", required=True, type=str)
     parser.add_argument("-v", "--verbose", help="Show merged macros", action="store_true")
